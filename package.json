@@ -1,0 +1,29 @@
+{
+  "name": "@walcdn/monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WalCDN Cloudflare Workers Monorepo",
+  "author": "Space Meridian <walcdn@meridian.space>",
+  "type": "module",
+  "workspaces": [
+    "retriever"
+  ],
+  "scripts": {
+    "build:types": "npm run build:types --workspaces --if-present",
+    "deploy:mainnet": "npm run deploy:mainnet --workspaces --if-present",
+    "lint": "eslint && prettier --check . && tsc -p .",
+    "lint:fix": "eslint --fix && prettier --write .",
+    "test": "npm run lint && wrangler d1 migrations apply test-db --local --cwd db && vitest run"
+  },
+  "prettier": "@checkernetwork/prettier-config",
+  "devDependencies": {
+    "@checkernetwork/prettier-config": "^1.0.1",
+    "@cloudflare/vitest-pool-workers": "^0.8.38",
+    "@types/node": "^22.15.31",
+    "neostandard": "^0.12.1",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "vitest": "3.1.4",
+    "wrangler": "^4.19.2"
+  }
+}
