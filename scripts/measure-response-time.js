@@ -1,11 +1,7 @@
 #!/usr/bin/env node
 // CLI to fetch a blob from a random aggregator and from 0x.mainnet.walcdn.io, measuring TTFB and TTLB
-import { getRandomAggregators } from '../retriever/lib/aggregators.js'
-
-function pickRandomAggregator() {
-  const list = getRandomAggregators(1)
-  return list[0]
-}
+import { getRandomAggregator } from '../retriever/lib/aggregators.js'
+import { base64UrlToBigInt } from '../retriever/lib/blob.js'
 
 function nowMs() {
   const [s, ns] = process.hrtime()
@@ -47,8 +43,8 @@ async function main() {
     process.exit(1)
   }
 
-  // 1. Random aggregator
-  const aggregator = pickRandomAggregator()
+  const seed = base64UrlToBigInt(blobId)
+  const aggregator = getRandomAggregator(seed)
   const aggUrl = `${aggregator}/v1/blobs/${blobId}`
   console.log(`Fetching from random aggregator: ${aggUrl}`)
   try {
