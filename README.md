@@ -74,5 +74,5 @@ You can measure retrieval response times using the `scripts/measure-response-tim
 To run the script, use the following command:
 
 ```sh
-node scripts/measure-response-time.js
+node scripts/measure-response-time.js <blobID>
 ```
