@@ -18,6 +18,10 @@ binding = "DB"
 database_name = "dev-db"
 database_id = "00000000-0000-0000-0000-000000000001"
 
+[[env.mainnet.routes]]
+pattern = "*.walcdn.io/*"
+zone_name = "walcdn.io"
+
 [env.mainnet.vars]
 ENVIRONMENT = "mainnet "
 CACHE_TTL = 86400
