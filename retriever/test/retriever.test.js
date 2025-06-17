@@ -16,8 +16,7 @@ const DNS_ROOT = '.walcdn.io'
 env.DNS_ROOT = DNS_ROOT
 
 describe('retriever.fetch', () => {
-  const defaultClientAddress =
-    '0x9716a65b4ed415a043aa2b927fa73bcee0ecd2426b4f360fc05a9c0a0413b356'
+  const defaultClientAddress = '0x1234567890abcdef1234567890abcdef12345678'
   const realBlobId = 'lTg8X_Jf3zvWDAxutgcINWCoPBHo9fT6hXw3MoN-3cc'
   const aggregatorUrl = 'https://agg.walcdn.io'
   const realAggregatorUrl = 'https://agg.walrus.eosusa.io'

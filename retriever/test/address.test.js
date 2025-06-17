@@ -1,48 +1,46 @@
 import { describe, it, expect } from 'vitest'
-// Assume you have a function isValidSuiAddress to test
-import { isValidSuiAddress } from '../lib/address.js'
+import { isValidEthereumAddress } from '../lib/address.js'
 
-describe('isValidSuiAddress', () => {
+describe('isValidEthereumAddress', () => {
   const cases = [
     {
-      name: 'valid mixed-case address',
-      input:
-        '0xAaBbCcDdEeFf00112233445566778899AaBbCcDdEeFf00112233445566778899',
+      name: 'valid lowercase address',
+      input: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       expected: true,
     },
     {
-      name: 'address with 0x prefix',
-      input: '0x' + 'a'.repeat(64),
+      name: 'valid uppercase address',
+      input: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+      expected: true,
+    },
+    {
+      name: 'valid mixed-case address',
+      input: '0xAaBbCcDdEeFf00112233445566778899AaBbCcDd',
       expected: true,
     },
     {
       name: 'address without 0x prefix',
-      input: 'a'.repeat(64),
+      input: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       expected: false,
     },
     {
-      name: 'address with less than 64 hex chars',
-      input: '0x' + 'a'.repeat(63),
+      name: 'address with less than 40 hex chars',
+      input: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       expected: false,
     },
     {
-      name: 'address with more than 64 hex chars',
-      input: '0x' + 'a'.repeat(65),
+      name: 'address with more than 40 hex chars',
+      input: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       expected: false,
     },
     {
       name: 'address with invalid characters',
-      input: '0x' + 'Z'.repeat(64),
+      input: '0xZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ',
       expected: false,
     },
     {
       name: 'empty string',
       input: '',
-      expected: false,
-    },
-    {
-      name: 'empty address',
-      input: '0x',
       expected: false,
     },
     {
@@ -60,7 +58,7 @@ describe('isValidSuiAddress', () => {
 
   cases.forEach(({ name, input, expected }) => {
     it(`returns ${expected} for ${name}`, () => {
-      expect(isValidSuiAddress(input)).toBe(expected)
+      expect(isValidEthereumAddress(input)).toBe(expected)
     })
   })
 })

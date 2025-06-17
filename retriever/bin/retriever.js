@@ -1,4 +1,4 @@
-import { isValidSuiAddress } from '../lib/address.js'
+import { isValidEthereumAddress } from '../lib/address.js'
 import { getRandomAggregator as defaultGetAggregator } from '../lib/aggregators.js'
 import { base64UrlToBigInt } from '../lib/blob.js'
 import { parseRequest } from '../lib/request.js'
@@ -48,7 +48,7 @@ export default {
       return new Response('Missing required fields', { status: 400 })
     }
 
-    if (!isValidSuiAddress(clientAddress)) {
+    if (!isValidEthereumAddress(clientAddress)) {
       return new Response(
         `Invalid address: ${clientAddress}. Address must be a valid ethereum address.`,
         { status: 400 },
