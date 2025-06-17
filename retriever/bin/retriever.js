@@ -1,5 +1,6 @@
 import { isValidEthereumAddress } from '../lib/address.js'
-import { getRandomAggregators as defaultGetAggregators } from '../lib/aggregators.js'
+import { getRandomAggregator as defaultGetAggregator } from '../lib/aggregators.js'
+import { base64UrlToBigInt } from '../lib/blob.js'
 import { parseRequest } from '../lib/request.js'
 import {
   retrieveFile as defaultRetrieveFile,
@@ -13,7 +14,7 @@ export default {
    * @param {Env} env
    * @param {ExecutionContext} ctx
    * @param {object} options
-   * @param {typeof defaultGetAggregators} [options.getAggregators]
+   * @param {typeof defaultGetAggregator} [options.getAggregator]
    * @param {typeof defaultRetrieveFile} [options.retrieveFile]
    * @returns
    */
@@ -22,7 +23,7 @@ export default {
     env,
     ctx,
     {
-      getAggregators = defaultGetAggregators,
+      getAggregator = defaultGetAggregator,
       retrieveFile = defaultRetrieveFile,
     } = {},
   ) {
@@ -56,10 +57,10 @@ export default {
 
     // Timestamp to measure file retrieval performance (from cache and from SP)
     const fetchStartedAt = performance.now()
-    // TODO: Pick random aggregator URLs from a list of known aggregators
-    const aggregatorUrls = getAggregators()
-    const { response, cacheMiss, aggregatorUrl } = await retrieveFile(
-      aggregatorUrls,
+    const seed = base64UrlToBigInt(blobId)
+    const aggregatorUrl = getAggregator(seed)
+    const { response, cacheMiss } = await retrieveFile(
+      aggregatorUrl,
       blobId,
       env.CACHE_TTL,
     )

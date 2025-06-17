@@ -20,7 +20,7 @@ describe('retriever.fetch', () => {
   const realBlobId = 'lTg8X_Jf3zvWDAxutgcINWCoPBHo9fT6hXw3MoN-3cc'
   const aggregatorUrl = 'https://agg.walcdn.io'
   const realAggregatorUrl = 'https://agg.walrus.eosusa.io'
-  const defaultGetAggregators = () => [aggregatorUrl]
+  const defaultGetAggregator = (_) => aggregatorUrl
 
   const worker = {
     fetch: async (
@@ -28,7 +28,7 @@ describe('retriever.fetch', () => {
       env,
       {
         retrieveFile = defaultRetrieveFile,
-        getAggregators = defaultGetAggregators,
+        getAggregator = defaultGetAggregator,
       } = {},
     ) => {
       const waitUntilCalls = []
@@ -39,7 +39,7 @@ describe('retriever.fetch', () => {
       }
       const response = await workerImpl.fetch(request, env, ctx, {
         retrieveFile,
-        getAggregators,
+        getAggregator,
       })
       await Promise.all(waitUntilCalls)
       return response
@@ -81,7 +81,6 @@ describe('retriever.fetch', () => {
     const mockRetrieveFile = vi.fn().mockResolvedValue({
       response: fakeResponse,
       cacheMiss: true,
-      aggregatorUrl,
     })
     const req = withRequest(defaultClientAddress, realBlobId)
     const res = await worker.fetch(req, env, { retrieveFile: mockRetrieveFile })
@@ -97,7 +96,7 @@ describe('retriever.fetch', () => {
     const req = withRequest(defaultClientAddress, realBlobId)
     const res = await worker.fetch(req, env, {
       retrieveFile,
-      getAggregators: () => [realAggregatorUrl],
+      getAggregator: (_) => realAggregatorUrl,
     })
     expect(res.status).toBe(200)
     // get the sha256 hash of the content
@@ -118,7 +117,6 @@ describe('retriever.fetch', () => {
     const mockRetrieveFile = vi.fn().mockResolvedValue({
       response: fakeResponse,
       cacheMiss: true,
-      aggregatorUrl,
     })
     const req = withRequest(defaultClientAddress, realBlobId)
     const res = await worker.fetch(req, env, { retrieveFile: mockRetrieveFile })
@@ -153,7 +151,6 @@ describe('retriever.fetch', () => {
     const mockRetrieveFile = vi.fn().mockResolvedValue({
       response: fakeResponse,
       cacheMiss: false,
-      aggregatorUrl,
     })
     const req = withRequest(defaultClientAddress, realBlobId)
     const res = await worker.fetch(req, env, { retrieveFile: mockRetrieveFile })
@@ -189,7 +186,6 @@ describe('retriever.fetch', () => {
       return {
         response: fakeResponse,
         cacheMiss: true,
-        aggregatorUrl,
       }
     }
     const req = withRequest(defaultClientAddress, realBlobId)
@@ -224,7 +220,6 @@ describe('retriever.fetch', () => {
           status: 200,
         }),
         cacheMiss: true,
-        aggregatorUrl,
       }
     }
     const req = withRequest(defaultClientAddress, realBlobId, 'GET', {
@@ -255,7 +250,6 @@ describe('retriever.fetch', () => {
     const mockRetrieveFile = vi.fn().mockResolvedValue({
       response: fakeResponse,
       cacheMiss: true,
-      aggregatorUrl,
     })
     const req = withRequest(defaultClientAddress, realBlobId)
     const res = await worker.fetch(req, env, { retrieveFile: mockRetrieveFile })
@@ -275,7 +269,7 @@ describe('retriever.fetch', () => {
     async () => {
       const req = withRequest(defaultClientAddress, realBlobId)
       const res = await worker.fetch(req, env, {
-        getAggregators: () => [realAggregatorUrl],
+        getAggregator: () => realAggregatorUrl,
       })
 
       assert.strictEqual(res.status, 200)
@@ -297,20 +291,15 @@ describe('retriever.fetch', () => {
   it('matches retrieval URL for aggregator url case-insensitively', async () => {
     const body = 'file content'
     // Simulate file retrieval
-    const mockRetrieveFile = async (urls, blobId) => {
-      // Check that the aggregatorUrl is in the list (case-insensitive)
-      const found = urls.some(
-        (u) => u.toLowerCase() === aggregatorUrl.toLowerCase(),
-      )
-
-      assert.ok(found)
+    const mockRetrieveFile = async (url, blobId) => {
+      // Check that the aggregatorUrl matches (case-insensitive)
+      assert.strictEqual(url.toLowerCase(), aggregatorUrl.toLowerCase())
       assert.strictEqual(blobId, realBlobId)
       return {
         response: new Response(body, {
           status: 200,
         }),
         cacheMiss: true,
-        aggregatorUrl,
       }
     }
 

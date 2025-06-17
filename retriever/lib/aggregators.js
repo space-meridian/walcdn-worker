@@ -60,11 +60,18 @@ export const AGGREGATORS = [
   'http://67.220.194.10:9000',
 ]
 
-export function getRandomAggregators(n = 3) {
-  if (n < 1) {
-    throw new Error(`Number of aggregators must be at least 1, got ${n}`)
+/**
+ * @param {bigint} [seed]
+ * @returns
+ */
+export function getRandomAggregator(seed) {
+  let idx
+
+  if (seed !== undefined) {
+    idx = Number(seed % BigInt(AGGREGATORS.length))
+  } else {
+    idx = Math.floor(Math.random() * AGGREGATORS.length)
   }
 
-  const shuffled = [...AGGREGATORS].sort(() => Math.random() - 0.5)
-  return shuffled.slice(0, n)
+  return AGGREGATORS[idx]
 }
