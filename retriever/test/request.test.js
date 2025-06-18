@@ -2,15 +2,15 @@ import { describe, it, expect } from 'vitest'
 import { parseRequest } from '../lib/request.js'
 
 const DNS_ROOT = '.walcdn.io'
-const TEST_WALLET = 'abc123'
-const TEST_BLOB_ID = 'baga123'
+const TEST_WALLET = '3rkdb89wnx4000000000000000000000000000000000000000'
+const TEST_BLOB_ID = 'lTg8X_Jf3zvWDAxutgcINWCoPBHo9fT6hXw3MoN'
 
 describe('parseRequest', () => {
   it('should parse clientWalletAddress and blobId from a URL with both params', () => {
     const request = { url: `https://${TEST_WALLET}${DNS_ROOT}/${TEST_BLOB_ID}` }
     const result = parseRequest(request, { DNS_ROOT })
     expect(result).toEqual({
-      clientWalletAddress: TEST_WALLET,
+      clientBase36Address: TEST_WALLET,
       blobId: TEST_BLOB_ID,
     })
   })
@@ -21,7 +21,7 @@ describe('parseRequest', () => {
     }
     const result = parseRequest(request, { DNS_ROOT })
     expect(result).toEqual({
-      clientWalletAddress: TEST_WALLET,
+      clientBase36Address: TEST_WALLET,
       blobId: TEST_BLOB_ID,
     })
   })
@@ -48,7 +48,7 @@ describe('parseRequest', () => {
     }
     const result = parseRequest(request, { DNS_ROOT })
     expect(result).toEqual({
-      clientWalletAddress: TEST_WALLET,
+      clientBase36Address: TEST_WALLET,
       blobId: TEST_BLOB_ID,
     })
   })

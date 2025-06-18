@@ -1,12 +1,13 @@
 import { isValidSuiAddress } from '../lib/address.js'
 import { getRandomAggregator as defaultGetAggregator } from '../lib/aggregators.js'
-import { base64UrlToBigInt } from '../lib/blob.js'
+import { base64UrlToBigInt } from '../lib/base64.js'
 import { parseRequest } from '../lib/request.js'
 import {
   retrieveFile as defaultRetrieveFile,
   measureStreamedEgress,
 } from '../lib/retrieval.js'
 import { logRetrievalResult } from '../lib/store.js'
+import { base36ToHex } from '../lib/base36.js'
 
 export default {
   /**
@@ -35,7 +36,7 @@ export default {
     }
 
     const {
-      clientWalletAddress: clientAddress,
+      clientBase36Address,
       blobId,
       error: parsingError,
     } = parseRequest(request, env)
@@ -44,16 +45,19 @@ export default {
       return new Response(parsingError, { status: 400 })
     }
 
-    if (!clientAddress || !blobId) {
+    if (!clientBase36Address || !blobId) {
       return new Response('Missing required fields', { status: 400 })
     }
 
+    const clientAddress = base36ToHex(clientBase36Address)
     if (!isValidSuiAddress(clientAddress)) {
       return new Response(
-        `Invalid address: ${clientAddress}. Address must be a valid ethereum address.`,
+        `Invalid address: ${clientAddress}. Address must be a valid sui address.`,
         { status: 400 },
       )
     }
+
+    console.log({ clientAddress })
 
     // Timestamp to measure file retrieval performance (from cache and from SP)
     const fetchStartedAt = performance.now()

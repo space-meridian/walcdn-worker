@@ -35,9 +35,9 @@ npm run build:types
 
 ### Run the Retriever worker locally
 
-1. Choose a wallet address you will use for the requests, e.g. `0x123`.
+1. Choose a base36 encoded wallet address you will use for the requests, e.g. `3rkdb89wnwzj3f2i7hnvuyna5vn7glk9vf3igtht9x6ejmboly`.
 
-2. Edit your `/etc/hosts` file and add an entry for `0x123.localhost`:
+2. Edit your `/etc/hosts` file and add an entry for `3rkdb89wnwzj3f2i7hnvuyna5vn7glk9vf3igtht9x6ejmboly.localhost`:
 
    ```
    127.0.0.1»foo.localhost

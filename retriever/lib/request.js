@@ -5,7 +5,7 @@
  * @param {object} options
  * @param {string} options.DNS_ROOT
  * @returns {{
- *   clientWalletAddress?: string
+ *   clientBase36Address?: string
  *   blobId?: string
  *   error?: string
  * }}
@@ -19,12 +19,12 @@ export function parseRequest(request, { DNS_ROOT }) {
       error: `Invalid hostname: ${url.hostname}. It must end with ${DNS_ROOT}.`,
     }
   }
-  const clientWalletAddress = url.hostname.slice(0, -DNS_ROOT.length)
+  const clientBase36Address = url.hostname.slice(0, -DNS_ROOT.length)
 
   const [blobId] = url.pathname.split('/').filter(Boolean)
   if (!blobId) {
     return { error: 'Missing required path element: `/{BlobID}`' }
   }
 
-  return { clientWalletAddress, blobId }
+  return { clientBase36Address, blobId }
 }

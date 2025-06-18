@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // CLI to fetch a blob from a random aggregator and from 0x.mainnet.walcdn.io, measuring TTFB and TTLB
 import { getRandomAggregator } from '../retriever/lib/aggregators.js'
-import { base64UrlToBigInt } from '../retriever/lib/blob.js'
+import { base64UrlToBigInt } from '../retriever/lib/base64.js'
 
 function nowMs() {
   const [s, ns] = process.hrtime()
@@ -57,7 +57,7 @@ async function main() {
   }
 
   // 2. 0x.mainnet.walcdn.io (cold)
-  const mainnetUrl = `https://0x000000000000000000000000000000000000dead.walcdn.io/${blobId}`
+  const mainnetUrl = `https://3rkdb89wnwzj3f2i7hnvuyna5vn7glk9vf3igtht9x6ejmboly.walcdn.io/${blobId}`
   console.log(`Fetching from mainnet (cold): ${mainnetUrl}`)
   try {
     const cold = await fetchWithTiming(mainnetUrl)
