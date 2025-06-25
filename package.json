@@ -19,7 +19,7 @@
   "devDependencies": {
     "@checkernetwork/prettier-config": "^1.0.1",
     "@cloudflare/vitest-pool-workers": "^0.8.43",
-    "@types/node": "^24.0.3",
+    "@types/node": "^24.0.4",
     "neostandard": "^0.12.1",
     "prettier": "^3.6.0",
     "typescript": "^5.8.3",
