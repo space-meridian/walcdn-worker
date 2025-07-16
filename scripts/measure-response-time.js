@@ -8,6 +8,39 @@ function nowMs() {
   return s * 1000 + ns / 1e6
 }
 
+function calculatePercentile(array, percentile) {
+  // Validate inputs
+  if (!Array.isArray(array) || array.length === 0) {
+    throw new Error('Array must be non-empty')
+  }
+
+  if (percentile < 0 || percentile > 100) {
+    throw new Error('Percentile must be between 0 and 100')
+  }
+
+  // Sort the array in ascending order
+  const sorted = [...array].sort((a, b) => a - b)
+
+  // Handle edge cases
+  if (percentile === 0) return sorted[0]
+  if (percentile === 100) return sorted[sorted.length - 1]
+
+  // Calculate the index using the "nearest rank" method
+  const index = (percentile / 100) * (sorted.length - 1)
+
+  // If index is a whole number, return that element
+  if (Number.isInteger(index)) {
+    return sorted[index]
+  }
+
+  // Otherwise, interpolate between the two nearest values
+  const lower = Math.floor(index)
+  const upper = Math.ceil(index)
+  const weight = index - lower
+
+  return sorted[lower] * (1 - weight) + sorted[upper] * weight
+}
+
 async function fetchWithTiming(url) {
   const start = nowMs()
   const stats = {
@@ -37,47 +70,105 @@ async function fetchWithTiming(url) {
 }
 
 async function main() {
-  const [, , blobId] = process.argv
+  const [, , blobId, iterations = '10'] = process.argv
   if (!blobId) {
-    console.error('Usage: measure-response-time.js <blobId>')
+    console.error('Usage: measure-response-time.js <blobId> [iterations]')
     process.exit(1)
   }
 
+  const numIterations = parseInt(iterations, 10)
+  if (isNaN(numIterations) || numIterations < 1) {
+    console.error('Iterations must be a positive number')
+    process.exit(1)
+  }
+
+  // 1. Measure retrievals from a random aggregator
   const seed = base64UrlToBigInt(blobId)
   const aggregator = getRandomAggregator(seed)
   const aggUrl = `${aggregator}/v1/blobs/${blobId}`
-  console.log(`Fetching from random aggregator: ${aggUrl}`)
+  await fetch(aggUrl) // Warm up the aggregator
+
+  const aggregatorTtfbTimings = []
+  const aggregatorTtlbTimings = []
+  console.log(`\nFetching from random aggregator: ${aggUrl}`)
   try {
-    const aggRes = await fetchWithTiming(aggUrl)
-    console.log(
-      `Aggregator: status=${aggRes.status}, TTFB=${aggRes.ttfb.toFixed(1)}ms, TTLB=${aggRes.ttlb.toFixed(1)}ms, size=${aggRes.size}`,
-    )
+    for (let i = 0; i < numIterations; i++) {
+      const { ttfb, ttlb } = await fetchWithTiming(aggUrl)
+
+      aggregatorTtfbTimings.push(ttfb)
+      aggregatorTtlbTimings.push(ttlb)
+
+      process.stdout.write(`\rProgress: ${i + 1}/${numIterations}`)
+    }
+    console.log()
   } catch (e) {
     console.error('Aggregator fetch failed:', e)
   }
 
-  // 2. 0x.mainnet.walcdn.io (cold)
   const mainnetUrl = `https://3rkdb89wnwzj3f2i7hnvuyna5vn7glk9vf3igtht9x6ejmboly.walcdn.io/${blobId}`
-  console.log(`Fetching from mainnet (cold): ${mainnetUrl}`)
+  await fetch(mainnetUrl) // Warm up the WalCDN
+
+  const walcdnTtfbTimings = []
+  const walcdnTtlbTimings = []
+  // 2. Measure retrievals from 0x.walcdn.io
+  console.log(`\nFetching from WalCDN: ${mainnetUrl}`)
   try {
-    const cold = await fetchWithTiming(mainnetUrl)
-    console.log(
-      `Mainnet (cold): status=${cold.status}, TTFB=${cold.ttfb.toFixed(1)}ms, TTLB=${cold.ttlb.toFixed(1)}ms, size=${cold.size}`,
-    )
+    for (let i = 0; i < numIterations; i++) {
+      const { ttfb, ttlb } = await fetchWithTiming(mainnetUrl)
+
+      walcdnTtfbTimings.push(ttfb)
+      walcdnTtlbTimings.push(ttlb)
+
+      process.stdout.write(`\rProgress: ${i + 1}/${numIterations}`)
+    }
+    console.log()
   } catch (e) {
-    console.error('Mainnet cold fetch failed:', e)
+    console.error('WalCDN cold fetch failed:', e)
   }
 
-  // 3. 0x.mainnet.walcdn.io (cache)
-  console.log(`Fetching from mainnet (cache): ${mainnetUrl}`)
-  try {
-    const cached = await fetchWithTiming(mainnetUrl)
-    console.log(
-      `Mainnet (cache): status=${cached.status}, TTFB=${cached.ttfb.toFixed(1)}ms, TTLB=${cached.ttlb.toFixed(1)}ms, size=${cached.size}`,
-    )
-  } catch (e) {
-    console.error('Mainnet cache fetch failed:', e)
-  }
+  console.log('\nAggregator timings:')
+  console.log('\nTTFB percentiles:\n')
+  console.log(
+    `50th: ${calculatePercentile(aggregatorTtfbTimings, 50).toFixed(1)}ms`,
+  )
+  console.log(
+    `90th: ${calculatePercentile(aggregatorTtfbTimings, 90).toFixed(1)}ms`,
+  )
+  console.log(
+    `99th: ${calculatePercentile(aggregatorTtfbTimings, 99).toFixed(1)}ms\n`,
+  )
+  console.log('TTLB percentiles:\n')
+  console.log(
+    `50th: ${calculatePercentile(aggregatorTtlbTimings, 50).toFixed(1)}ms`,
+  )
+  console.log(
+    `90th: ${calculatePercentile(aggregatorTtlbTimings, 90).toFixed(1)}ms`,
+  )
+  console.log(
+    `99th: ${calculatePercentile(aggregatorTtlbTimings, 99).toFixed(1)}ms`,
+  )
+
+  console.log('\nWalCDN timings:')
+  console.log('\nTTFB percentiles:\n')
+  console.log(
+    `50th: ${calculatePercentile(walcdnTtfbTimings, 50).toFixed(1)}ms`,
+  )
+  console.log(
+    `90th: ${calculatePercentile(walcdnTtfbTimings, 90).toFixed(1)}ms`,
+  )
+  console.log(
+    `99th: ${calculatePercentile(walcdnTtfbTimings, 99).toFixed(1)}ms\n`,
+  )
+  console.log('TTLB percentiles:\n')
+  console.log(
+    `50th: ${calculatePercentile(walcdnTtlbTimings, 50).toFixed(1)}ms`,
+  )
+  console.log(
+    `90th: ${calculatePercentile(walcdnTtlbTimings, 90).toFixed(1)}ms`,
+  )
+  console.log(
+    `99th: ${calculatePercentile(walcdnTtlbTimings, 99).toFixed(1)}ms`,
+  )
 }
 
 main()
